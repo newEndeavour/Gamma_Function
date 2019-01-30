@@ -1,8 +1,8 @@
 /*
   File:         Gamma_Function.cpp
-  Version:      0.0.1
+  Version:      0.0.2
   Date:         27-Jan-2019
-  Revision:     27-Jan-2019
+  Revision:     30-Jan-2019
   Author:       Jerome Drouin (jerome.p.drouin@gmail.com)
 
   Editions:	Please go to Gamma_Function.h for Edition Notes.
@@ -33,7 +33,7 @@
 */
 
 // Includes
-#include <Arduino.h>   // 
+#include <Arduino.h>   // required for Serial.print()
 #include <math.h>      // required for powl(), sinl(), fabsl() and ldexpl().
 #include <float.h>     // required for DBL_MAX and LDBL_MAX
 #include <limits.h>    // required for LONG_MAX
@@ -200,7 +200,8 @@ int i;
    	temp *= ( powl((g + xx - 0.5L) / e, xx - 0.5L) / exp_g_o_sqrt_2pi );
    	
 	/*
-	Serial.print("bibi was here...\n");
+	//DEBUG
+	Serial.print("I was here...\n");
 	Serial.print("x:");
 	Serial.print((double)x);
 	Serial.print("return:");

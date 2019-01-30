@@ -1,8 +1,8 @@
 /*
   File:         Gamma_Function.h
-  Version:      0.0.1
+  Version:      0.0.2
   Date:         27-Jan-2019
-  Revision:     27-Jan-2019
+  Revision:     30-Jan-2019
   Author:       Jerome Drouin (jerome.p.drouin@gmail.com)
 
   Credits:	https://en.wikipedia.org/wiki/Gamma_function
@@ -30,6 +30,8 @@
 
   Editions:	
 	0.0.1	: first version
+	0.0.2	: Correction of a few bugs in .cpp (long-> long double and other casting 
+		  niceties)
 	
 */
 
