@@ -7,6 +7,9 @@
 
   Editions:	Please go to Gamma_Function.h for Edition Notes.
 
+  Credits:	https://en.wikipedia.org/wiki/Gamma_function
+		http://www.mymathlib.com/functions/gamma_beta.html
+
   Gamma_Function.cpp - Library for 'duino
   https://github.com/newEndeavour/Gamma_Function
 
@@ -25,11 +28,12 @@
   GNU General Public License for more details.
  
   You should have received a copy of the GNU General Public License
-  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  along double with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 */
 
 // Includes
+#include <Arduino.h>   // 
 #include <math.h>      // required for powl(), sinl(), fabsl() and ldexpl().
 #include <float.h>     // required for DBL_MAX and LDBL_MAX
 #include <limits.h>    // required for LONG_MAX
@@ -43,20 +47,20 @@
 #define Nterms 20
 
 // Library definitions
-double 		Gamma_Function(double x);
-long 		xGamma_Function(long x);
-static long 	xGamma(long x);
-static long 	Duplication_Formula(long two_x);
-double 		Ln_Gamma_Function(double x);
-long double 	xLn_Gamma_Function(long double x);
-static long double xLnGamma_Asymptotic_Expansion(long double x); 
-double 		Lower_Incomplete_Gamma_Function(double x, double nu);
-long double 	xLower_Incomplete_Gamma_Function(long double x, long double nu);
-double 		Entire_Incomplete_Gamma_Function(double x, double nu); 
-long double 	xEntire_Incomplete_Gamma_Function(long double x, long double nu);
-static long double xSmall_x(long double x, long double nu);
-static long double xMedium_x(long double x, long double nu);
-static long double xLarge_x(long double x, long double nu);
+double 			Gamma_Function(double x);
+long double 		xGamma_Function(long double x);
+static long double 	xGamma(long double x);
+static long double 	Duplication_Formula(long double two_x);
+double 			Ln_Gamma_Function(double x);
+long double 		xLn_Gamma_Function(long double x);
+static long double 	xLnGamma_Asymptotic_Expansion(long double x); 
+double 			Lower_Incomplete_Gamma_Function(double x, double nu);
+long double 		xLower_Incomplete_Gamma_Function(long double x, long double nu);
+double 			Entire_Incomplete_Gamma_Function(double x, double nu); 
+long double 		xEntire_Incomplete_Gamma_Function(long double x, long double nu);
+static long double 	xSmall_x(long double x, long double nu);
+static long double 	xMedium_x(long double x, long double nu);
+static long double 	xLarge_x(long double x, long double nu);
 
 // Constants
 static long double const e =  2.71828182845904523536028747L;
@@ -107,12 +111,12 @@ static const long double B[] = {   1.0L / (long double)(6 * 2 * 1),
 
 double Gamma_Function(double x)
 {
-long g;
+long double g;
 
 	if (x > max_double_arg) 
 		return DBL_MAX;
    
-	g = xGamma_Function((long) x);
+	g = xGamma_Function((long double) x);
 
 	if (fabsl(g) < DBL_MAX) 
 		return (double) g;
@@ -122,26 +126,17 @@ long g;
 }
 
 // xGamma_Function
-// This function uses Lanczos' expression to calculate Gamma(x) for real
-// x, where -(max_long_double_arg - 1) < x < max_long_double_arg.
-// Note the Gamma function is meromorphic in the complex plane and has
-// poles at the nonpositive integers.
-// Tests for x a positive integer or a half positive integer give a
-// maximum absolute relative error of about 3.5e-16.
-// If x > max_long_double_arg, then one should use lnGamma(x).
-// Note that for x < 0, ln (Gamma(x)) may be a complex number.
-
-long xGamma_Function(long x)
+long double xGamma_Function(long double x)
 {
-long sin_x;
-long rg;
+long double sin_x;
+long double rg;
 long int ix;
 
 	// For a positive argument (x > 0)
-        // if x <= max_long_double_arg return Gamma(x)
+        // if x <= max_long_double_arg return xGamma(x)
         // otherwise return LDBL_MAX.
 	if (x > 0.0L) {
-		if (x <= max_long_double_arg) 
+		if (x <= max_long_double_arg)
 			return xGamma(x);
       		else 	
 			return LDBL_MAX;
@@ -149,9 +144,9 @@ long int ix;
 
         // For a nonpositive argument (x <= 0)
         // if x is a pole return LDBL_MAX
-   	if (x > -(long)LONG_MAX) {
+   	if (x > -(long double)LONG_MAX) {
 		ix = (long int) x;
-		if (x == (long)ix) 
+		if (x == (long double)ix) 
 			return LDBL_MAX;
    	}
    	
@@ -182,11 +177,11 @@ long int ix;
 // The major source of relative error is in the use of the c library   
 // function powl().  The results have a relative error of about 10^-16.
 // except near x = 0.                                                  
-static long xGamma(long x)
+static long double xGamma(long double x)
 {
-long xx = (x < 1.0L) ? x + 1.0L : x;
-long temp;
-int const n = sizeof(a) / sizeof(long);
+long double xx = (x < 1.0L) ? x + 1.0L : x;
+long double temp;
+int const n = sizeof(a) / sizeof(long double);
 int i;
 
 	if (x > 1755.5L) 
@@ -198,12 +193,22 @@ int i;
    	temp = 0.0L;
    	
 	for (i = n-1; i >= 0; i--) {
-      		temp += ( a[i] / (xx + (long) i) );
+      		temp += ( a[i] / (xx + (long double) i) );
    	}
    
 	temp += 1.0L;
    	temp *= ( powl((g + xx - 0.5L) / e, xx - 0.5L) / exp_g_o_sqrt_2pi );
-   
+   	
+	/*
+	Serial.print("bibi was here...\n");
+	Serial.print("x:");
+	Serial.print((double)x);
+	Serial.print("return:");
+	long double re = (x < 1.0L) ?  temp / x : temp;
+	Serial.print((double)re);
+	Serial.print("\n");
+	*/
+
 	return (x < 1.0L) ?  temp / x : temp;
 }
 
@@ -211,14 +216,14 @@ int i;
 // Duplication_Formula
 // Duplication_Formula returns the Gamma(two_x) using the duplication formula
 // Gamma(2x) = (2^(2x-1) / sqrt(pi)) Gamma(x) Gamma(x+1/2).
-static long Duplication_Formula(long two_x)
+static long double Duplication_Formula(long double two_x)
 {
-long x = 0.5L * two_x;
-long g;
+long double x = 0.5L * two_x;
+long double g;
 double two_n = 1.0;
 int n = (int) two_x - 1;
 
-	g  = powl(2.0L, two_x - 1.0L - (long) n);
+	g  = powl(2.0L, two_x - 1.0L - (long double) n);
 	g  = ldexpl(g,n);	
 	g /= sqrt(pi);
 	g *= xGamma_Function(x);	
@@ -239,7 +244,7 @@ double Gamma_Function_Max_Arg(void)
 
 // This function returns the maximum argument of xGamma_Function for which
 // a number < LDBL_MAX is returned, for arguments greater than 1.
-long xGamma_Function_Max_Arg(void) 
+long double xGamma_Function_Max_Arg(void) 
 { 
 	return max_long_double_arg; 
 }
@@ -272,6 +277,11 @@ long double xLower_Incomplete_Gamma_Function(long double x, long double nu)
       		return expl(logl(xEntire_Incomplete_Gamma_Function(x,nu))
                                                   + xLn_Gamma_Function(nu));
 }
+
+
+
+//+++++++++++++++++++++++
+
 
 
 // Ln_Gamma_Function
@@ -411,7 +421,8 @@ int i;
 
 	if (nu > Gamma_Function_Max_Arg()) {
       		coef = expl( nu * logl(x) - x - xLn_Gamma_Function(nu) );
-      		if (coef > 0.0L) epsilon = DBL_EPSILON/coef;
+      		if (coef > 0.0L) 
+			epsilon = DBL_EPSILON/coef;
    	} else {
 		coef = powl(x, nu) * expl(-x) / xGamma_Function(nu);
       		epsilon = DBL_EPSILON/coef;

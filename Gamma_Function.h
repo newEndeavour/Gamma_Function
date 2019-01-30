@@ -5,6 +5,9 @@
   Revision:     27-Jan-2019
   Author:       Jerome Drouin (jerome.p.drouin@gmail.com)
 
+  Credits:	https://en.wikipedia.org/wiki/Gamma_function
+		http://www.mymathlib.com/functions/gamma_beta.html
+
   Gamma_Function.h - Library for 'duino
   https://github.com/newEndeavour/Gamma_Function
 
