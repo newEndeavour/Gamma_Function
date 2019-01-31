@@ -51,9 +51,13 @@ double 			Gamma_Function(double x);
 long double 		xGamma_Function(long double x);
 static long double 	xGamma(long double x);
 static long double 	Duplication_Formula(long double two_x);
+
+double 			Gamma_Function_Max_Arg(void); 
+
 double 			Ln_Gamma_Function(double x);
 long double 		xLn_Gamma_Function(long double x);
 static long double 	xLnGamma_Asymptotic_Expansion(long double x); 
+
 double 			Lower_Incomplete_Gamma_Function(double x, double nu);
 long double 		xLower_Incomplete_Gamma_Function(long double x, long double nu);
 double 			Entire_Incomplete_Gamma_Function(double x, double nu); 
@@ -269,19 +273,17 @@ double Lower_Incomplete_Gamma_Function(double x, double Nu)
 long double xLower_Incomplete_Gamma_Function(long double x, long double nu)
 {
 
-	if (x == 0.0L ) 
+	if (x == 0.0L) 
 		return 0.0L;
 
-	if (nu <= Gamma_Function_Max_Arg())
+	if (nu<=Gamma_Function_Max_Arg()) {
+		
 		return xEntire_Incomplete_Gamma_Function(x,nu) * xGamma_Function(nu);
+	}
 	else
       		return expl(logl(xEntire_Incomplete_Gamma_Function(x,nu))
                                                   + xLn_Gamma_Function(nu));
 }
-
-
-
-//+++++++++++++++++++++++
 
 
 
@@ -363,9 +365,10 @@ double Entire_Incomplete_Gamma_Function(double x, double nu)
 // xEntire_Incomplete_Gamma_Function
 long double xEntire_Incomplete_Gamma_Function(long double x, long double nu)
 {
+
 	if (x == 0.0L) 
 		return 0.0L;
-   	
+
 	if (fabsl(x) <= 1.0L) 
 		return xSmall_x(x, nu);
 
@@ -418,7 +421,9 @@ long double correction = -temp_sum + corrected_term;
 long double sum1 = temp_sum;
 long double sum2;
 long double epsilon = 0.0L;
+long double EpsCorrection = 1E-9;
 int i;
+
 
 	if (nu > Gamma_Function_Max_Arg()) {
       		coef = expl( nu * logl(x) - x - xLn_Gamma_Function(nu) );
@@ -439,18 +444,21 @@ int i;
       		correction = (sum1 - temp_sum) + corrected_term;
       		sum1 = temp_sum;
    	}
+
    	sum2 = sum1;
    	sum1 *= coef;
    	correction += sum2 - sum1 / coef;
    	term *= x / (nu + i);
    	sum2 = term + correction;
    
-	for (i++; (term + correction) > epsilon * sum2; i++) {
-      		term *= x / (nu + i);
-      		corrected_term = term + correction;
-      		temp_sum = sum2 + corrected_term;
-      		correction = (sum2 - temp_sum) + corrected_term;
-      		sum2 = temp_sum;
+	//Condition too stringent for not much improvement
+	//for (i++; (term + correction) > (epsilon * sum2); i++) {
+	for (i++; ((term + correction) - (epsilon * sum2)) > EpsCorrection; i++) {
+      		term 		*= x / (nu + i);
+      		corrected_term   = term + correction;
+      		temp_sum 	 = sum2 + corrected_term;
+      		correction 	 = (sum2 - temp_sum) + corrected_term;
+      		sum2 		 = temp_sum;
    	}
    
    	sum2 += correction;
@@ -469,6 +477,7 @@ static long double xLarge_x(long double x, long double nu)
 long double temp = 1.0L / nu;
 long double sum = temp;
 long double coef;
+long double medi;
 int i = 0;
 int n;
 
@@ -478,10 +487,11 @@ int n;
       		temp *= x / (nu + i);
       		sum += temp;
    	}
-   
-	if ( nu <= Gamma_Function_Max_Arg() ) {
+		
+	if (nu <= Gamma_Function_Max_Arg() ) {
       		coef = powl(x, nu) * expl(-x) / xGamma_Function(nu);
-		return xMedium_x(x, nu + n) + coef * sum;
+		medi = xMedium_x(x, nu + n);
+		return medi + coef * sum;
    	} else {
       		return expl(logl(sum) + nu * logl(x) - x - xLn_Gamma_Function(nu)) +
                                                         xMedium_x(x, nu + n); 
