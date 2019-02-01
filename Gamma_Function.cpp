@@ -58,6 +58,13 @@ double 			Ln_Gamma_Function(double x);
 long double 		xLn_Gamma_Function(long double x);
 static long double 	xLnGamma_Asymptotic_Expansion(long double x); 
 
+double 			DiGamma_Function(double x);
+long double 		xDiGamma_Function(long double x);
+
+static long double 	xDiGamma(long double x);
+static long double 	xDiGamma_Asymptotic_Expansion(long double x);
+
+
 double 			Lower_Incomplete_Gamma_Function(double x, double nu);
 long double 		xLower_Incomplete_Gamma_Function(long double x, long double nu);
 double 			Entire_Incomplete_Gamma_Function(double x, double nu); 
@@ -67,13 +74,14 @@ static long double 	xMedium_x(long double x, long double nu);
 static long double 	xLarge_x(long double x, long double nu);
 
 // Constants
-static long double const e =  2.71828182845904523536028747L;
-static long double const pi = 3.14159265358979323846264338L;
-static long double const g =  9.65657815377331589457187L;
-static const long double log_sqrt_2pi = 9.18938533204672741780329736e-1L;
-static long double const exp_g_o_sqrt_2pi = +6.23316569877722552586386e+3L;
-static double max_double_arg = 171.0;
-static long double max_long_double_arg = 1755.5L;
+static long double const 	e 	=  2.71828182845904523536028747L;
+static long double const 	pi 	=  3.14159265358979323846264338L;
+static long double const 	g 	=  9.65657815377331589457187L;
+static const long double 	log_sqrt_2pi 		= 9.18938533204672741780329736e-1L;
+static long double const 	exp_g_o_sqrt_2pi 	= +6.23316569877722552586386e+3L;
+static double 			max_double_arg 		= 171.0;
+static long double 		max_long_double_arg 	= 1755.5L;
+static double 			cutoff 			= 171.0;
 
 static long double const a[] = {
                                  +1.14400529453851095667309e+4L,
@@ -100,6 +108,9 @@ static const long double B[] = {   1.0L / (long double)(6 * 2 * 1),
                                43867.0L / (long double)(796 * 18 * 17),
                              -174611.0L / (long double)(330 * 20 * 19) 
                            };
+
+static const int NB = sizeof(B) / sizeof(long double);
+
 
 
 // Active /////////////////////////////////////////////////////////////////
@@ -349,6 +360,129 @@ int i;
 
  	return lngamma + sum;
 }
+
+
+//-----------------------------
+
+
+// DiGamma_Function                                      
+// This function uses the derivative of the log of Lanczos's expression   
+// for the Gamma function to calculate the DiGamma function for x > 1 and 
+// x <= cutoff = 171.  An asymptotic expression for the DiGamma function  
+// for x > cutoff.  The reflection formula                                
+//                   DiGamma(x) = DiGamma(1+x) - 1/x                       
+// for 0 < x < 1. and the reflection formula                              
+//            DiGamma(x) = DiGamma(1-x) - pi * cot(pi*x)                  
+// for x < 0.                                                             
+// The DiGamma function has singularities at the nonpositive integers.    
+// At a singularity, DBL_MAX is returned.                                 
+double DiGamma_Function(double x)
+{
+long double psi = xDiGamma_Function((long double) x);
+
+	if (fabsl(psi) < DBL_MAX) 
+		return (double) psi;
+
+   	return (psi < 0.0L) ? -DBL_MAX : DBL_MAX;
+}
+
+
+// xDiGamma_Function
+long double xDiGamma_Function(long double x)
+{
+long double sin_x, cos_x;
+long int ix;
+
+	// For a positive argument (x > 0)                
+        // if x <= cutoff return Lanzcos approximation
+        // otherwise return Asymptotic approximation
+
+   	if ( x > 0.0L )
+      		if (x <= cutoff)
+         		if (x >= 1.0L) 
+				return xDiGamma(x);
+         		else 
+				return xDiGamma( x + 1.0L ) - (1.0L / x);
+      		else 
+			return xDiGamma_Asymptotic_Expansion(x);
+
+        // For a nonpositive argument (x <= 0)
+        // If x is a singularity then return LDBL_MAX.
+	if ( x > -(long double)LONG_MAX) {
+      		ix = (long int) x;
+      		if ( x == (long double) ix) return LDBL_MAX;
+   	}
+
+	sin_x = sinl(pi * x);
+   	if (sin_x == 0.0L) 
+		return LDBL_MAX;
+   
+	cos_x = cosl(pi * x);
+   	if (fabsl(cos_x) == 1.0L) 
+		return LDBL_MAX;
+
+        // If x is not a singularity then return DiGamma(x)
+   	return xDiGamma(1.0L - x) - pi * cos_x / sin_x;
+}
+
+
+// xDiGamma
+// This function uses the derivative of the log of Lanczos's expression   
+// for the Gamma function to calculate the DiGamma function for x > 1 and 
+// x <= cutoff = 171.                                                     
+static long double xDiGamma(long double x) 
+{
+long double lnarg = (g + x - 0.5L);
+long double temp;
+long double term;
+long double numerator = 0.0L;
+long double denominator = 0.0L;
+int const n = sizeof(a) / sizeof(long double);
+int i;
+
+	for (i = n-1; i >= 0; i--) {
+      		temp 		= x + (long double) i;
+      		term 		= a[i] / temp;
+      		denominator    += term;
+      		numerator      += term / temp;
+   	} 
+   
+	denominator += 1.0L;
+   
+   	return logl(lnarg) - (g / lnarg) - numerator / denominator;
+
+}
+
+
+// xDiGamma_Asymptotic_Expansion
+//     This function estimates DiGamma(x) by evaluating the asymptotic        //
+//     expression:                                                            //
+//         DiGamma(x) ~ ln(x) - (1/2) x +                                     //
+//                        Sum B[2j] / [ 2j * x^(2j) ], summed over            //
+//     j from 1 to 3 and where B[2j] is the 2j-th Bernoulli number.           //
+static long double xDiGamma_Asymptotic_Expansion(long double x ) {
+const int  m = 3;
+long double term[3];
+long double sum = 0.0L;
+long double xx = x * x;
+long double xj = x;
+long double digamma = logl(xj) - 1.0L / (xj + xj);
+int i;
+
+	xj = xx;
+   	for (i = 0; i < m; i++) { 
+		term[i] = B[i] / xj; 
+		xj *= xx; 
+	}
+   
+	for (i = m - 1; i >= 0; i--) 
+		sum += term[i]; 
+   
+	return digamma - sum;
+}
+
+
+//-----------------------------
 
 
 // Entire_Incomplete_Gamma_Function

@@ -50,6 +50,12 @@ double 			Ln_Gamma_Function(double x);
 long double 		xLn_Gamma_Function(long double x);
 static long double 	xLnGamma_Asymptotic_Expansion(long double x); 
 
+double 			DiGamma_Function( double x );
+long double 		xDiGamma_Function( long double x );
+
+static long double 	xDiGamma(long double x);
+static long double 	xDiGamma_Asymptotic_Expansion( long double x );
+
 double 			Lower_Incomplete_Gamma_Function(double x, double nu);
 long double 		xLower_Incomplete_Gamma_Function(long double x, long double nu);
 double 			Entire_Incomplete_Gamma_Function(double x, double nu); 
